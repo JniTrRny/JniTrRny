@@ -8,8 +8,14 @@ public class Game{
 
     /** Universal scanners */
     static Scanner input = new Scanner(System.in), line = new Scanner(System.in);
-    /** Game values stored as int */
-    static int money = 100, supply = 0, totalDistance = 0, nextDistance = 0, skipEvent = 0;
+    /** Game universal values (int) */
+    static int totalDistance = 0, nextDistance = 0, skipEvent = 0;
+    /** Game universal values (float) */
+    static float money = 0, supply = 0;
+    /** Conversion values */
+    static float luck = 1f, dts = 1f, stc = 0.5f;
+    /** Multipliers */
+    static float supplyMultiplier = 1f, supplyConsumingMultiplier = 1f, moneyMultiplier = 1f, moneySpendingMultiplier = 1f, courtChanceMultiplier = 1f;
     /** Towns */
     static String currentTown, nextTown;
     /** Explored Towns */
@@ -20,13 +26,13 @@ public class Game{
     public static void main(String[] args){
         //Start of the game
         //ASCII from https://patorjk.com/software/taag/
-        System.out.println(" ░▒▓██████▓▒░ ░▒▓█▓▒░░▒▓█▓▒░░▒▓████████▓▒░░▒▓███████▓▒░░▒▓█▓▒░░▒▓███████▓▒░ ░▒▓████████▓▒░      ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░ ░▒▓██████▓▒░ ░▒▓███████▓▒░ ░▒▓█▓▒░       ░▒▓███████▓▒░  ");
-        System.out.println("░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░   ░▒▓█▓▒░   ░▒▓█▓▒░       ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░             ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░       ░▒▓█▓▒░░▒▓█▓▒░ ");
-        System.out.println("░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░   ░▒▓█▓▒░   ░▒▓█▓▒░       ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░             ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░       ░▒▓█▓▒░░▒▓█▓▒░");
-        System.out.println("░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░   ░▒▓█▓▒░    ░▒▓██████▓▒░ ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓██████▓▒░        ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓███████▓▒░ ░▒▓█▓▒░       ░▒▓█▓▒░░▒▓█▓▒░ ");
-        System.out.println("░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░   ░▒▓█▓▒░          ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░             ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░       ░▒▓█▓▒░░▒▓█▓▒░");
-        System.out.println("░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░   ░▒▓█▓▒░          ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░             ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░       ░▒▓█▓▒░░▒▓█▓▒░");
-        System.out.println(" ░▒▓██████▓▒░  ░▒▓██████▓▒░    ░▒▓█▓▒░   ░▒▓███████▓▒░ ░▒▓█▓▒░░▒▓███████▓▒░ ░▒▓████████▓▒░       ░▒▓█████████████▓▒░  ░▒▓██████▓▒░ ░▒▓█▓▒░░▒▓█▓▒░░▒▓████████▓▒░░▒▓███████▓▒░");
+        System.out.println(" ââââââââââââ âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ ââââââââââââââ      âââââââââââââââââââââ ââââââââââââ âââââââââââââ âââââââ       âââââââââââââ  ");
+        System.out.println("ââââââââââââââââââââââââââââ   âââââââ   âââââââ       ââââââââââââââââââââââââââââ             ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ       ââââââââââââââ ");
+        System.out.println("ââââââââââââââââââââââââââââ   âââââââ   âââââââ       ââââââââââââââââââââââââââââ             ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ       ââââââââââââââ");
+        System.out.println("ââââââââââââââââââââââââââââ   âââââââ    ââââââââââââ âââââââââââââââââââââââââââââââââ        ââââââââââââââââââââââââââââââââââââââââââââââââ âââââââ       ââââââââââââââ ");
+        System.out.println("ââââââââââââââââââââââââââââ   âââââââ          âââââââââââââââââââââââââââââââââââ             ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ       ââââââââââââââ");
+        System.out.println("ââââââââââââââââââââââââââââ   âââââââ          âââââââââââââââââââââââââââââââââââ             ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ       ââââââââââââââ");
+        System.out.println(" ââââââââââââ  ââââââââââââ    âââââââ   âââââââââââââ ââââââââââââââââââââ ââââââââââââââ       âââââââââââââââââââ  ââââââââââââ âââââââââââââââââââââââââââââââââââââââââ");
 
         System.out.println("\n\n                        WELCOME TO THE -OUTSIDE WORLD-!                          ");
         System.out.println("               YOUR EPIC ADVENTURE STARTS HERE!               ");
@@ -45,23 +51,26 @@ public class Game{
     }
 
     public static void tutorial(){
+        resetProgression(); //Reset game progression
+
         //Supply selection
         print("\n\n\nYou collected your essential stuff, your savings of 100 coins, and bid farewell to your home.");
         print("Before you head out, you decided to stop at the village shop.");
-        supply = choices("What do you want to buy?", 1, "Nothing", "Canned Food (20 c)", "Packaged Meals (30 c)", "Meal Jumbo (40 c)") * 20; //Supply choice
+        int ans = choicesBuying("What do you want to buy?", 4, new int[]{20, 30, 40, 0}, "Canned Food", "Packaged Meals", "Meal Jumbo", "Nothing"); //Supply choice
 
-        if(supply > 20){
-            print("You spent " + (supply / 2) + " coins to buy " + supply + " miles worth of supplies.");
-            money -= supply / 2;
+        if(ans != 4){
+            supply += ans * 20 * supplyMultiplier;
+            print("You spent " + (supply * stc * moneyMultiplier * moneySpendingMultiplier) + " coins to buy " + supply + " miles worth of supplies.");
+            money -= supply * stc * moneyMultiplier * moneySpendingMultiplier; //TODO value dilemma
         }
 
         System.out.print("You left your village with " + money + " coins and ");
 
-        switch(supply){
-            case 20 -> print("no plans ahead whatsoever.");
-            case 40 -> print("several canned foods.");
-            case 60 -> print("several packages of meal");
-            case 80 -> print("all sorts of meal in large amount.");
+        switch(ans){
+            case 1 -> print("several canned foods.");
+            case 2 -> print("several packages of meal.");
+            case 3 -> print("all sorts of meal in large amount.");
+            case 4 -> print("no plans ahead whatsoever.");
         }
 
         //First journey
@@ -71,7 +80,7 @@ public class Game{
         randomEvent(); //First event of the game
 
         print("You depleted your food supply along the way.");
-        updateSupply(-nextDistance); //Deplete the supply
+        updateSupply(-nextDistance * dts * supplyConsumingMultiplier); //Deplete the supply
         updateDistance(nextDistance); //Add distance
 
         //First destination, neighboring village, tutorial ends here
@@ -87,8 +96,8 @@ public class Game{
     }
 
     /** Calculate & catch the amount of money. Ratio of money currency is 1:2 of supply value. 1:10 of skip event, 1 per mile. */
-    public static void updateMoneyRaw(int amount){
-        money += amount; //Changes the money value
+    public static void updateMoneyRaw(float amount){
+        money += amount * moneyMultiplier; //Changes the money value
 
         //Money status
         if(money > 500){ //>500
@@ -116,27 +125,27 @@ public class Game{
     }
 
     /** Updates money (capped to 0) */
-    public static void updateMoney(int amount){
+    public static void updateMoney(float amount){
         updateMoneyRaw(Math.min(amount, money)); //Caps money to positive value or zero
     }
 
     /** Spends money TODO expand */
-    public static void spentMoney(int spent, Runnable accept, Runnable reject){
+    public static void spentMoney(float spent, Runnable accept, Runnable reject){
         if(money >= spent){
             accept.run();
-            updateMoney(-spent);
+            updateMoney(-spent * moneySpendingMultiplier);
         }else{
             reject.run();
         }
     }
 
-    public static void spentMoney(int spent, Runnable accept){
+    public static void spentMoney(float spent, Runnable accept){
         spentMoney(spent, accept, () -> print("You don't have enough money to buy that."));
     }
 
     /** Calculate & catch the amount of supply. */
-    public static void updateSupply(int amount){
-        supply += amount; //Changes the supply value
+    public static void updateSupply(float amount){
+        supply += amount * supplyMultiplier; //Changes the supply value
 
         if(supply <= 20){
             System.out.print("You ran out of supplies.");
@@ -151,7 +160,7 @@ public class Game{
         if(supply > 1){
             //Report supply
             print(" Can travel for another " + supply + " miles.");
-        }else if(supply == 1 || supply == 0){
+        }else if(supply >= -eventFrequency){
             //Very low supply
             print(" Cannot travel further anymore.");
         }else{
@@ -164,7 +173,6 @@ public class Game{
     /** Calculate & catch change in distance */
     public static void updateDistance(int distance){
         int newDistance = totalDistance + distance; //New distance
-        print("new distance: " + newDistance); //DEBUG
         if(newDistance >= townProgression && totalDistance < townProgression){
             //New distance crossed
             print("You have travelled the outside world for long and far enough.");
@@ -209,9 +217,7 @@ public class Game{
         boolean pathFound = false; //If a new path has been found, stop the loop
 
         while(!pathFound){
-            int ans = choices("What do you want to do here?", "Refill Supply", "Ask people", "Walk around", "Settle down"); //Town choice
-
-            switch(ans){
+            switch(choices("What do you want to do here?", "Refill Supply", "Ask people", "Walk around", "Settle down")){
                 case 1 -> { //Refill Supplies
                     if(totalDistance < townProgression){
                         System.out.println("You went to a nearby shop to look for supplies.");
@@ -221,12 +227,13 @@ public class Game{
                         System.out.println("You went to a big mall to look for supplies.");
                     }
 
-                    int ans2 = 10 * choices("What food do you want to buy?", "Canned Food (10 c)", "Packaged Food (20 c)", "Energizing Meals (30 c)", "Cancel");
+                    int ans = choicesBuying("What food do you want to buy?", new int[]{10, 20, 30, 0}, "Canned Food", "Packaged Food", "Energizing Meal", "Cancel");
+                    float cost = ans * 10 * moneySpendingMultiplier;
 
-                    if(ans2 != 40){
-                        spentMoney(ans2, () -> {
+                    if(ans != 4){
+                        spentMoney(cost, () -> {
                             System.out.print("Supply refilled. ");
-                            updateSupply(ans2 * 2); //Add supply
+                            updateSupply(cost / stc); //Add supply
                         });
                     }
                 }
@@ -292,9 +299,7 @@ public class Game{
                                 print("While you're walking, you found some money on the street.");
                                 print("You wanted to pick it up, but you're afraid it might be a theft.");
 
-                                boolean ans2 = choices("What do you do?", "Collect", "Ignore");
-
-                                if(ans2){
+                                if(choices("What do you do?", "Collect", "Ignore")){
                                     //Collected the money
                                     print("You picked it up and put it in your pockets.");
                                     updateMoney(rng(10, 15)); //Add money
@@ -312,9 +317,8 @@ public class Game{
                             case 2 -> {
                                 //Found suspicious acts
                                 print("While you're walking, you found someone doing suspicious activities.");
-                                int ans2 = choices("What do you do?", 4, "Report", "Talk to them", "Threaten them", "Ignore");
 
-                                switch(ans2){
+                                switch(choices("What do you do?", 4, "Report", "Talk to them", "Threaten them", "Ignore")){
                                     case 1 -> {
                                         print("You reported them to the police.");
 
@@ -455,12 +459,11 @@ public class Game{
     public static void travel(){
         //Looping events until the distance is met
         for(int i = Math.max(nextDistance / eventFrequency, 1); i > 0; i--){
-            print("i: " + i); //DEBUG
             //Skips event
             if(skipEvent > 0){
                 print(random(50) ? "Speeding forward..." : "Rushing up..."); //TODO put this to somewhere it will not repeat with the normal status update
                 skipEvent--;
-                supply += eventFrequency; //Silently adding supplies
+                supply += eventFrequency * dts * supplyConsumingMultiplier; //Silently adding supplies
                 updateDistance(eventFrequency); //Update distance
                 continue;
             }
@@ -470,7 +473,7 @@ public class Game{
             print(random(33) ? "You depleted some of your supplies along the way." :
             random(50) ? "You bust through your supplies along the way." : "You ate your food supplies along the way.");
 
-            updateSupply(-eventFrequency); //Calculate supply along the way
+            updateSupply(-eventFrequency * dts * supplyConsumingMultiplier); //Calculate supply along the way
             updateDistance(eventFrequency); //Update distance
 
             if(i <= 2){ //Less than 2 events left
@@ -486,7 +489,7 @@ public class Game{
 
         if(nextDistance % eventFrequency > 0){
             print("But before that, you chuckle some of your last supplies.");
-            updateSupply(-(nextDistance % eventFrequency)); //Calculate leftover supplies before approaching new town
+            updateSupply(-((nextDistance * dts * supplyConsumingMultiplier) % eventFrequency)); //Calculate leftover supplies before approaching new town
             updateDistance(nextDistance % eventFrequency); //Update leftover distance
         }else{
             print("You should be approaching very shortly.");
@@ -502,9 +505,9 @@ public class Game{
      */
     public static void committedCrime(String crime, int bail, int chance){
         print("You were accused of " + crime + ".");
-        boolean confessed = choices("Is the accusation true?", "Confess", "Deny"); //Crime choice
 
-        if(confessed){
+        if(choices("Is the accusation true?", "Confess", "Deny")){
+            //Confessed
             print("You confessed to the accusations.");
             print("You were charged of " + crime + " and is sentenced to jail.");
 
@@ -518,9 +521,92 @@ public class Game{
                 gameOver("You ended up in jail."); //Game over TODO continues after jail
             });
         }else{
+            //Did not confess
             print("You did not confess to the accusations.");
-            print("You challenged for false accusation.");
-            //TODO did not confess; fight in law; can gain money here if done right
+            print("You challenged the accuser for false accusation.");
+            if(random(Math.max(10 - (chance / bail), 9) * 10)){
+                //Court case
+                print("Let's fight in the court of law.");
+
+                int lawyerChance = 75;
+                switch(choicesBuying("What lawyer would you hire?", 1, new int[]{0, 20, 40}, "Public Defender (0 c)", "Law Associate", "Attorney")){
+                    case 1 -> print("You hired a Public Defender to represent you in the lawsuit.");
+                    case 2 -> {
+                        print("You hired a law associate to represent you in the lawsuit.");
+                        lawyerChance = 100;
+                    }
+                    case 3 -> {
+                        print("You hired an attorney to represent you in the lawsuit.");
+                        lawyerChance = 120;
+                    }
+                }
+
+                print("Your hired lawyer asked you some questions to help them with the case:");
+
+                int confidence = 0;
+                confidence += choices("Would you please explain the situation?", "Explain in detail", "Explain obscurely") ? 20 : -10;
+                confidence += choices("Are there any witnesses?", "Yes", "No") ? 25 : -15;
+                confidence += choices("Are there biases in the case?", "Yes", "No") ? 30 : 0;
+
+                print("Your lawyer inspected your answers closely.");
+
+                if(chance >= 60 && confidence > 0){
+                    //Supportive
+                    print("Thanks to your helpful insight, they gained additional resources to support you.");
+                    print("They are confident that you'd win the case.");
+                    lawyerChance += confidence;
+                }else if(chance >= 30){
+                    //Neutral
+                    print("Unfortunately, Your insight did not provide them any leverage to the case.");
+                    print("But, they will try their best to protect you in the court.");
+                    lawyerChance += rng(0, confidence/2);
+                }else{
+                    //Negative
+                    if(lawyerChance - confidence < lawyerChance - lawyerChance/2){
+                        //Replaces lawyer with a Public Defender
+                        print("They came with the conclusion that they cannot accept the case.");
+                        print("The Public Defender should be in place for your missing lawyer.");
+                        lawyerChance = 75;
+                    }else if(confidence < 0){
+                        //Low winning chance, but more confidence
+                        print("From the surface, they knew that you have a low chance of winning.");
+                        print("But thanks to your helpful insight, they've gained confidence to support you.");
+                        print("They're quite confident that you'll win the case despite all the odds.");
+                        lawyerChance -= confidence;
+                    }else{
+                        //Less winning chance
+                        print("Based on your answers, they concluded that the case isn't on your side.");
+                        print("They are not fully confident that they can protect you.");
+                        lawyerChance -= confidence;
+                    }
+                }
+
+                boolean ruling = random(chance * lawyerChance * luck * courtChanceMultiplier);
+                if(ruling){
+                    print("You have found to be NOT GUILTY!");
+                    print("Case closed.");
+                }else{
+                    print("You have found to be GUILTY!"); //TODO
+                }
+            }else{
+                //Negotiate in the police station
+                print("The police told you to clear things out before the case escalated.");
+                print("They summoned the accuser to the police station to talk with you.");
+                print("You talked with the accuser to find the common ground to end the case.");
+                print(random(50) ? "You explained them their story and how it was a misunderstanding." : "They explained the situation in their perspective and what they knew.");
+                if(random(chance)){
+                    int comps = rng(bail - (bail/4), bail/2);
+                    print("It was a misunderstanding and the accuser withdraw the case.");
+                    print("They agreed to pay the compensation of " + comps + " coins to you.");
+                    print("Case closed.");
+                    updateMoney(comps);
+                }else{
+                    int comps = rng(bail - (bail/2), bail/4);
+                    print("You agreed to pay " + comps + " coins for the accuser to withdraw the case.");
+                    print("Case closed.");
+                    updateMoney(comps);
+                }
+            }
         }
     }
 
@@ -584,9 +670,7 @@ public class Game{
             noticed = true;
         }
 
-        int ans = choices("What do you do?", "Run away", "Attack", "Play dead", "Ride on it"); //Boar choice
-
-        switch(ans){
+        switch(choices("What do you do?", "Run away", "Attack", "Play dead", "Ride on it")){
             case 1 -> {
                 print("You ran away from the boar.");
                 if(random(noticed ? 60 : 95)){
@@ -601,7 +685,7 @@ public class Game{
                     //Lucky RNG; Killed the boar
                     print("You attacked and killed the boar.");
                     print("You gathered its meat to your supply.");
-                    updateSupply(30); //Add supply
+                    updateSupply(rng(25, 15)); //Add supply
                 }else if(random(noticed ? 80 : 95)){
                     //Normal RNG; Boar ran away
                     print("You attacked the boar.");
@@ -654,9 +738,7 @@ public class Game{
             vicious = true;
         }
 
-        int ans = choices("What do you do?", "Run away", "Attack", "Surrender", "Negotiate"); //Thief choice
-
-        switch(ans){
+        switch(choices("What do you do?", "Run away", "Attack", "Surrender", "Negotiate")){
             case 1 -> {
                 print("You ran away from the thieves.");
                 if(random(vicious ? 50 : 80)){
@@ -708,9 +790,7 @@ public class Game{
                     print("They threatened you for more money.");
                     print("If you do not comply, they're going to do it by force.");
 
-                    int ans2 = choices("What do you do?", "Comply", "Refuse", "Attack", "Negotiate"); //Thief choice 2
-
-                    switch(ans2){
+                    switch(choices("What do you do?", "Comply", "Refuse", "Attack", "Negotiate")){
                         case 1 -> {
                             print("You complied with them and gave some more money.");
                             updateMoney(-rng(7, 8));
@@ -800,9 +880,7 @@ public class Game{
         print("During your journey, you stumble upon an abandoned house.");
         print("It seems like it has been left for a very long time.");
 
-        int ans = choices("What do you do?", 1, "Ignore", "Search", "Walk around", "Blow up"); //House choice
-
-        switch(ans){
+        switch(choices("What do you do?", 1, "Ignore", "Search", "Walk around", "Blow up")){
             case 1 -> print("You ignored the house and progressed forward.");
             case 2 -> {
                 print("You searched inside the house.");
@@ -851,9 +929,8 @@ public class Game{
                 print("You blew the house up.");
                 if(random(50)){ //Lucky
                     print("You found a pathway to the basement of the house.");
-                    boolean ans2 = choices("Do you want to explore it?", "Yes", "No");
 
-                    if(ans2){
+                    if(choices("Do you want to explore it?", "Yes", "No")){
                         //Go to the basement
                         print("You went down to explore the basement.");
                         if(random(5)){
@@ -864,9 +941,8 @@ public class Game{
                         }else if(random(15)){
                             //Lucky
                             print("You found a mysterious chest.");
-                            boolean ans3 = choices("Do you want to open it?", "Yes", "No");
 
-                            if(ans3){
+                            if(choices("Do you want to open it?", "Yes", "No")){
                                 //Opened the chest
                                 print("You decided to open the chest.");
                                 if(random(20)){
@@ -909,26 +985,24 @@ public class Game{
     public static void eventMerchant(){
         print("Along the way, you come across a wandering merchant.");
         print("They offered to sell some of their goods to you for low price.");
-        int ans = choices("Which one do you what to buy?", "Packaged Food (25 c)", "Old Wagon (30 c)", "Mystery Backpack (20 c)", "Nothing");
 
-        switch(ans){
-            case 1 -> spentMoney(25, () -> {
+        switch(choicesBuying("Which one do you what to buy?", new int[]{25, 30 ,20, /*15,*/ 0}, "Packaged Food", "Old Wagon", "Mystery Backpack", /*"Luck Potion",*/ "Nothing")){
+            case 1 -> {
                 print("You bought food supplies from the merchant.");
-                updateSupply(60); //Add supply (better than town market)
-            });
+                updateSupply(30 / stc); //Add 30 coins worth of supplies (better rate than town markets)
+            }
 
-            case 2 -> spentMoney(30, () -> {
+            case 2 -> {
                 print("You bought an old wagon from the merchant.");
                 print("You used it to speed your way to the next destination.");
                 skipEvent += 3; //Skips 3 events
-            });
+            }
 
-            case 3 -> spentMoney(20, () -> {
+            case 3 -> {
                 print("You bought a mystery backpack from the merchant.");
                 print("The merchant told you to be careful of its content.");
-                boolean ans2 = choices("What do you do?", "Open", "Throw away");
 
-                if(ans2){
+                if(choices("What do you do?", "Open", "Throw away")){
                     print("You opened the mystery backpack.");
                     if(random(50)){
                         print("You found some good supplies and money inside them.");
@@ -946,7 +1020,13 @@ public class Game{
                     print("You threw away the backpack.");
                     print(random(33) ? "Why did you bought it in the first place?" : random(50) ? "You are not risking your life over that." : "You just wasted your hard-earned money for nothing.");
                 }
-            });
+            }
+            /*case 4 -> {
+                print("You bought a potion of luck from the merchant.");
+                print("You drank the potion. Your luck increased for the next 30 miles.");
+                luck = 1.2f;
+                //TODO should be a consumable item-class in the future - can select if you want to drink it or not and keep it - more expensive
+            }*/
 
             case 4 -> print("You declined the offer and continued on with your journey.");
         }
@@ -961,6 +1041,15 @@ public class Game{
             case 4 -> eventMerchant(); //Merchant event
             //default -> miniEvents();
         }
+    }
+
+    /** Reset the game progression */
+    public static void resetProgression(){
+        currentTown = "Home";
+        nextTown = "";
+        supply = 20; //Set difficulty
+        money = 100; //Set difficulty
+        skipEvent = totalDistance = nextDistance = 0;
     }
 
     /** Ends the game with whatever reason. */
@@ -984,14 +1073,12 @@ public class Game{
 
     /** Random number generation */
     public static int rng(int min, int range){
-        int rng = (int)Math.round(Math.random() * range) + min; //DEBUG
-        print("RNG: " + rng); //DEBUG
-        return rng;
+        return (int)Math.round(Math.random() * range) + min;
     }
 
     /** Random between true and false */
-    public static boolean random(int percent){
-        return Math.random() < (percent / 100f);
+    public static boolean random(float percent){
+        return Math.random() < (percent * luck / 100f);
     }
 
     /** Choices selection panel */
@@ -1001,10 +1088,11 @@ public class Game{
             print(text);
             for(int i = 0; i < options.length; i++){
                 System.out.print((i + 1) + ") " + options[i]);
-                System.out.print(i % 2 == 0 ? "        " : "\n");
+                System.out.print(i % 2 == 0 ? " ".repeat(Math.max(20 - options[i].length(), 1)) : "\n");
             }
 
-            int ans = input.nextInt();
+            var in = input.nextInt();
+            int ans = Integer.parseInt("" + in) == in ? in : defaultAns;
             for(int i = 0; i < options.length; i++) if(ans == i + 1) return i + 1;
 
             if(defaultAns != -100){
@@ -1015,8 +1103,42 @@ public class Game{
         }
     }
 
+    /** Choices selection panel, without default choice */
     public static int choices(String text, String... options){
         return choices(text, -100, options);
+    }
+
+    /** Choices selection panel with price options */
+    public static int choicesBuying(String text, int defaultAns, int[] prices, String... options){
+
+        while(true){
+            print(text);
+            for(int i = 0; i < options.length; i++){
+                System.out.print((i + 1) + ") " + options[i] + (prices[i] > 0 ? " (" + prices[i] + " c)" : ""));
+                System.out.print(i % 2 == 0 ? " ".repeat(Math.max(20 - options[i].length(), 1)) : "\n");
+            }
+
+            var in = input.nextInt();
+            int ans = Integer.parseInt("" + in) == in ? in : defaultAns;
+
+            for(int i = 0; i < options.length; i++){
+                if(ans == i + 1){
+                    if(prices[i] > 0) spentMoney(prices[i], () -> {});
+                    if(money >= prices[i]) return i + 1;
+                }
+            }
+
+            if(defaultAns != -100){
+                return defaultAns;
+            }else{
+                print("Wrong or invalid input, please try again.");
+            }
+        }
+    }
+
+    /** Choices selection panel with price options, without default choice */
+    public static int choicesBuying(String text, int[] prices, String... options){
+        return choicesBuying(text, -100, prices, options);
     }
 
     /* Choices selection panel
@@ -1039,8 +1161,8 @@ public class Game{
             System.out.print("1) " + option1 + "    ");
             System.out.println("2) " + option2);
 
-            //String in = input.nextLine();
-            int ans = input.hasNextInt() && (input.nextInt() == 1 || input.nextInt() == 2) ? input.nextInt() : -1;
+            var in = input.nextInt();
+            int ans = Integer.parseInt("" + in) == in && (in == 1 || in == 2) ? in : -1;
 
             //int ans = in.equals("1") || in.equals(option1) ? 1 : in.equals("2") && in.equals(option2) ? 2 : -1;
             if(ans != -1) return ans == 1;
@@ -1054,4 +1176,3 @@ public class Game{
         line.nextLine();
     }
 } //TODO make another, more sensational ending - a way to gain money - more events
-// TODO FIX THE INPUT BOOLEAN AND BRAINROT OF SCANNER
