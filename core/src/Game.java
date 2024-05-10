@@ -9,11 +9,11 @@ public class Game{
     /** Universal scanners */
     static Scanner input = new Scanner(System.in), line = new Scanner(System.in);
     /** Game universal values (int) */
-    static int totalDistance = 0, nextDistance = 0, skipEvent = 0;
+    static int totalDistance = 0, nextDistance = 0, skipEvent = 0, gameDay = 1;
     /** Game universal values (float) */
-    static float money = 0, supply = 0;
+    static float money = 0, supply = 0, withheldSupply = 0, gameTime = 0, timeElapsed = 0;
     /** Conversion values */
-    static float luck = 1f, dts = 1f, stc = 0.5f;
+    static float luck = 1f, dts = 1f, dtt = 10f, stc = 0.5f;
     /** Multipliers */
     static float supplyMultiplier = 1f, supplyConsumingMultiplier = 1f, moneyMultiplier = 1f, moneySpendingMultiplier = 1f, courtChanceMultiplier = 1f;
     /** Towns */
@@ -21,7 +21,11 @@ public class Game{
     /** Explored Towns */
     static String[] exploredTowns;
     /** Final distance values, used for progression in story. */
-    static final int townProgression = 250, cityProgression = 1000, endProgression = 5000, eventFrequency = 10;
+    static final int townProgression = 250, cityProgression = 1000, endProgression = 5000;
+    /** Final event/time values */
+    static final int eventFrequency = 10, eventTime = 50, dayNightCycle = 2500, dayTime = (dayNightCycle/2) + (dayNightCycle/10), nightTime = (dayNightCycle/2) - (dayNightCycle/10);
+    /** Cheats */
+    static boolean unlimitedSupply = false, unlimitedMoney = false, instantTravel = false;
 
     public static void main(String[] args){
         //Start of the game
@@ -54,14 +58,14 @@ public class Game{
         resetProgression(); //Reset game progression
 
         //Supply selection
-        print("\n\n\nYou collected your essential stuff, your savings of 100 coins, and bid farewell to your home.");
+        print("\n\n\nYou collected your essential stuff, your savings of " + money + " coins, and bid farewell to your home.");
         print("Before you head out, you decided to stop at the village shop.");
-        int ans = choicesBuying("What do you want to buy?", 4, new int[]{20, 30, 40, 0}, "Canned Food", "Packaged Meals", "Meal Jumbo", "Nothing"); //Supply choice
+        int ans = choices("What do you want to buy?", 4, "Canned Food (20 c)", "Packaged Meals (30 c)", "Meal Jumbo (40 c)", "Nothing"); //Supply choice
 
         if(ans != 4){
-            supply += ans * 20 * supplyMultiplier;
-            print("You spent " + (supply * stc * moneyMultiplier * moneySpendingMultiplier) + " coins to buy " + supply + " miles worth of supplies.");
-            money -= supply * stc * moneyMultiplier * moneySpendingMultiplier; //TODO value dilemma
+            print("You spent " + ((ans + 1) * 10 * moneyMultiplier * moneySpendingMultiplier) + " coins to buy " + (ans + 1) * 20 * supplyMultiplier + " miles worth of supplies.");
+            money -= (ans + 1) * 10 * moneyMultiplier * moneySpendingMultiplier;
+            supply += (ans + 1) * 20 * supplyMultiplier;
         }
 
         System.out.print("You left your village with " + money + " coins and ");
@@ -82,6 +86,7 @@ public class Game{
         print("You depleted your food supply along the way.");
         updateSupply(-nextDistance * dts * supplyConsumingMultiplier); //Deplete the supply
         updateDistance(nextDistance); //Add distance
+        updateTime(nextDistance * dtt);
 
         //First destination, neighboring village, tutorial ends here
         currentTown = "neighboring village";
@@ -97,10 +102,16 @@ public class Game{
 
     /** Calculate & catch the amount of money. Ratio of money currency is 1:2 of supply value. 1:10 of skip event, 1 per mile. */
     public static void updateMoneyRaw(float amount){
-        money += amount * moneyMultiplier; //Changes the money value
+        if(unlimitedMoney){
+            money = Float.POSITIVE_INFINITY;
+            print("You have unlimited money.");
+            return;
+        }
+
+        money += amount * moneyMultiplier; //Changes the money value;
 
         //Money status
-        if(money > 500){ //>500
+        if(money > 500){ //500+
             System.out.print("You are very prosperous.");
         }else if(money > 250){ //250 - 500
             System.out.print("You are wealthy.");
@@ -108,30 +119,30 @@ public class Game{
             System.out.print("You are fairly self-contained.");
         }else if(money > 25){ //25 - 100
             System.out.print("You still have some money.");
-        }else if(money > 0){ //0 - 25
+        }else if(money > 0){ //1 - 25
             System.out.print("You are running out of money.");
         }else if(money == 0){ //0
-            print("You are broke.");
+            print("You are broke. (" + amount + ")"); //DEBUG TODO
         }else{
             print("You are indebted of " + Math.abs(money) + " coins.");
         }
 
         //Amount of money
         if(money > 1){
-            print(" Got " + money + " coins left.");
+            print(" Got " + money + " (" + (amount > 0 ? "+" + amount : amount) + ") coins left.");
         }else if(money == 1){
-            print(" Got " + money + " coin left.");
+            print(" Got " + money + " (" + (amount > 0 ? "+" + amount : amount) + ") coin left.");
         }
     }
 
     /** Updates money (capped to 0) */
     public static void updateMoney(float amount){
-        updateMoneyRaw(Math.min(amount, money)); //Caps money to positive value or zero
+        updateMoneyRaw(amount >= 0 || money >= Math.abs(amount) ? amount : -money); //Caps money to positive value or zero
     }
 
-    /** Spends money TODO expand */
+    /** Spends money */
     public static void spentMoney(float spent, Runnable accept, Runnable reject){
-        if(money >= spent){
+        if(money >= spent || unlimitedMoney){
             accept.run();
             updateMoney(-spent * moneySpendingMultiplier);
         }else{
@@ -145,27 +156,37 @@ public class Game{
 
     /** Calculate & catch the amount of supply. */
     public static void updateSupply(float amount){
+        if(unlimitedSupply){
+            supply = Float.POSITIVE_INFINITY; //TODO don't use max value or infinity
+            print("You have unlimited supplies.");
+            return;
+        }
+
         supply += amount * supplyMultiplier; //Changes the supply value
 
-        if(supply <= 20){
-            System.out.print("You ran out of supplies.");
-        }else if(supply <= 40){
-            System.out.print("You ran out of stock food.");
-        }else if(supply <= 60){
+        if(supply > 250){ //250+
+            System.out.print("You have a large amount of food supplies.");
+        }else if(supply > 100){ //100 - 250
+            System.out.print("You have plentiful amount of food supplies.");
+        }else if(supply > 50){ //50 - 100
+            System.out.print("You have a good amount of food supplies.");
+        }else if(supply > 25){ //25 - 50
             System.out.print("You still have some food left.");
+        }else if(supply > 0){ //1 - 25
+            System.out.print("You are low on supply.");
         }else{
-            System.out.print("You have plentiful amount of food and water.");
+            System.out.print("You ran out of supply.");
         }
 
         if(supply > 1){
             //Report supply
-            print(" Can travel for another " + supply + " miles.");
+            print(" Can travel for another " + supply / dts + " miles.");
         }else if(supply >= -eventFrequency){
             //Very low supply
             print(" Cannot travel further anymore.");
         }else{
             //Starved to death
-            print(" Cannot travel anymore.");
+            print(" You are starving.");
             gameOver("You died from starvation."); //Game over
         }
     }
@@ -191,6 +212,20 @@ public class Game{
         totalDistance = newDistance; //Apply new distance to total distance
     }
 
+    /** Updates game time */
+    public static void updateTime(float time){
+        gameTime += time;
+        timeElapsed += time;
+
+        //New day
+        if((gameTime / dayNightCycle) + 1 % 2 == 0){
+            gameDay++;
+            timeElapsed = 0;
+        }
+
+        print("Game time: " + gameTime + "     |     Time elapsed: " + timeElapsed + " (+" + time + ")" + "Day " + gameDay); //DEBUG
+    }
+
     /** Arrives at a town */
     public static void townArrived(){
         //Arrived at the new town
@@ -206,39 +241,58 @@ public class Game{
                         : "elegant. With its people working and playing around like families, it makes you miss your home."));
 
         currentTown = nextTown; //Next town becomes current town
-        nextDistance = 0; //Resets next distance
         nextTown = ""; //Resets next town
+        nextDistance = 0; //Resets next distance
 
         townChoices();
     }
 
     /** Choices when arriving to a town */
     public static void townChoices(){
-        boolean pathFound = false; //If a new path has been found, stop the loop
 
-        while(!pathFound){
+        while(true){
+            if(timeElapsed <= dayTime / 4f){
+                print("\n\nLet's look around for something to do.");
+            }else if(timeElapsed <= dayTime / 2f){
+                print("\n\nYou've been where for a while now.");
+            }else if(timeElapsed <= dayTime - eventTime){
+                //One event left until nighttime
+                print("\n\nIt's evening now, places are starting to close.");
+                print("You might want to find a place to stay or start travelling further.");
+            }else{
+                print("\n\n\n\nIt's nighttime. All place are closed. Find a place to stay.");
+            }
+
             switch(choices("What do you want to do here?", "Refill Supply", "Ask people", "Walk around", "Settle down")){
-                case 1 -> { //Refill Supplies
-                    if(totalDistance < townProgression){
-                        System.out.println("You went to a nearby shop to look for supplies.");
-                    }else if(totalDistance < cityProgression){
-                        System.out.println("You went to the town market to look for supplies.");
-                    }else{
-                        System.out.println("You went to a big mall to look for supplies.");
-                    }
+                case 1 -> { //TODO nighttime closed
+                    //Refill Supplies
+                    if(timeElapsed <= nightTime - eventTime){
+                        if(totalDistance < townProgression){
+                            print("You went to a nearby shop to look for supplies.");
+                        }else if(totalDistance < cityProgression){
+                            print("You went to the town market to look for supplies.");
+                        }else{
+                            print("You went to a big mall to look for supplies.");
+                        }
 
-                    int ans = choicesBuying("What food do you want to buy?", new int[]{10, 20, 30, 0}, "Canned Food", "Packaged Food", "Energizing Meal", "Cancel");
-                    float cost = ans * 10 * moneySpendingMultiplier;
+                        int ans = choicesBuying("What food do you want to buy?", 4, new int[]{10, 20, 30, 0}, "Canned Food", "Packaged Food", "Energizing Meal", "Cancel");
+                        float cost = ans * 10 * moneySpendingMultiplier;
 
-                    if(ans != 4){
-                        spentMoney(cost, () -> {
+                        if(ans != 4){
                             System.out.print("Supply refilled. ");
                             updateSupply(cost / stc); //Add supply
-                        });
+                        }
+
+                        updateTime(eventTime);
+                    }else{
+                        //Closes early
+                        print("Supply shops are closed.");
+                        print("You might want to come check again in the morning.");
                     }
                 }
 
-                case 2 -> { //Ask townspeople
+                case 2 -> {
+                    //Ask townspeople
                     if(totalDistance < townProgression){
                         print("You asked nearby villagers for direction.");
                     }else if(totalDistance < cityProgression){
@@ -247,7 +301,7 @@ public class Game{
                         print("You asked a group of locals for direction.");
                     }
 
-                    if(random(20)){ //RNG
+                    if(random(20)){
                         //Found new path
                         if(totalDistance < townProgression){
                             print("They led you to an interesting pathway.");
@@ -259,26 +313,55 @@ public class Game{
                             print("It is possibly designed for some kind of machine capable of speeding.");
                         }
                         newPaths(totalDistance < townProgression ? 3 : 4); //New path
-                        pathFound = true;
-                    }else if(random(80)){ //TODO met crime syndicate, met traders, met someone who needs to pay
+                    }else if(random(80)){
+                        //Random events TODO met crime syndicate, met traders, met someone who needs to pay
+                        switch(rng(1, 3)){
+                            case 1, 2 -> {
+                                print("They told you knew the way, but you have to pay them to tell you.");
+                                if(choicesBuying("What do you do?", new int[]{rng(9, 6), 0}, "Pay them", "Walk away") == 1){
+                                    print("You paid them money to led you to the way.");
+                                    if(random(75)){
+                                        //Real pathway
+                                        print("They led you to a secret pathway only they knows.");
+                                        newPaths(rng(2, 1));
+                                    }else if(random(50)){
+                                        //Fake pathway
+                                        print("They led you to nearby trails, but it doesn't lead to the new path.");
+                                        print(random(33) ? "They ran away before you could catch them." : random(50) ? "You got scammed hard." : "Your disappointment is immeasurable and your day is ruined.");
+                                    }else{
+                                        //Beat you up
+                                        print("They led you to a dead end street and beat you up.");
+                                        print("They stole some more money from you too.");
+                                        updateMoney(-rng(7, 4));
+                                    }
+                                }else{
+                                    print("You declined to offer and walked away.");
+                                }
+                            }
+                            case 3 -> {
+                                print(random(33) ? "They beat you up and robbed your money." :
+                                random(50) ? "They pretended to lead you around, but then pickpockets you and ran away." :
+                                "They tricked you into submission and stole your money.");
+                                updateMoney(-rng(12, 12));
+                            }
+                            case 4 -> {
+                                //Called the police
+                                print("They called police on you of suspicious activities.");
+                                committedCrime("suspicious activities", 25, 50); //Accused of suspicious activities
+                            }
+                        }
+                    }else{
                         //Didn't find new path
                         print(random(25) ? "You found nothing meaningful." :
                         random(33) ? "You don't understand what they're talking about." :
                         random(50) ? "They have no clue too." : "They ignored you and walked away.");
-                    }else if(random(60)){
-                        //Unlucky RNG
-                        print(random(33) ? "They beat you up and robbed your money." :
-                        random(50) ? "They pretended to lead you around, but then pickpockets you and ran away." :
-                        "They tricked you into submission and stole your money.");
-                        updateMoney(-rng(12, 12));
-                    }else{
-                        //Called the police
-                        print("They called police on you of suspicious activities.");
-                        committedCrime("suspicious activities", 25, 50); //Accused of suspicious activities
                     }
+
+                    updateTime(eventTime);
                 }
 
-                case 3 -> { //Walking around the town
+                case 3 -> {
+                    //Walking around the town
                     if(totalDistance < townProgression){
                         print("You walked around the village.");
                     }else if(totalDistance < cityProgression){
@@ -290,7 +373,6 @@ public class Game{
                     if(random(15)){ //RNG
                         //Found new path
                         newPaths(rng(1, 2));
-                        pathFound = true;
                     }else{
                         //Walking events
                         switch(rng(1, 1)){
@@ -324,8 +406,8 @@ public class Game{
 
                                         if(random(50)){
                                             print("You got awarded some money for reporting them.");
-                                            updateMoney(rng(25, 15));
-                                        }else if(random(20)){
+                                            updateMoney(rng(25, 10));
+                                        }else if(random(75)){
                                             print("They ran away before the police could come.");
 
                                             if(random(50)){
@@ -387,6 +469,8 @@ public class Game{
                             default -> print(random(50) ? "You found nothing meaningful." : "You feel tired of walking."); //Didn't find anything
                         }
                     }
+
+                    updateTime(eventTime);
                 }
 
                 case 4 -> {
@@ -433,7 +517,7 @@ public class Game{
 
         int ans = input.hasNextInt() ? input.nextInt() : -1;
 
-        switch(ans){
+        switch(ans){ //TODO prevent option
             case 1 -> nextTown = town1;
             case 2 -> nextTown = town2;
             case 3 -> nextTown = town3;
@@ -441,7 +525,7 @@ public class Game{
             default -> {
                 print("You need some more time to decide.");
                 print(random(33) ? "Take your time." : random(50) ? "Try running around to clear your mind." : "Think hard about it.");
-                townChoices();
+                return;
             }
         }
 
@@ -455,17 +539,34 @@ public class Game{
         travel();
     }
 
-    /** Travelling process */
+    /** Travelling process TODO make it customizable (eventFrequency, nextDistance) */
     public static void travel(){
         //Looping events until the distance is met
         for(int i = Math.max(nextDistance / eventFrequency, 1); i > 0; i--){
-            //Skips event
-            if(skipEvent > 0){
-                print(random(50) ? "Speeding forward..." : "Rushing up..."); //TODO put this to somewhere it will not repeat with the normal status update
-                skipEvent--;
-                supply += eventFrequency * dts * supplyConsumingMultiplier; //Silently adding supplies
+            if(instantTravel){
+                //Instant travel
+                print("Initiating instant travel...");
+                break;
+            }
+
+            if(skipEvent > 0 || random(5)){
+                //Skips event
+                print(random(33) ? "Speeding forward..." : random(50) ? "Rushing up..." : "Travelling at tremendous speed...");
                 updateDistance(eventFrequency); //Update distance
+                updateTime((eventFrequency * dtt) / 2);
+                if(skipEvent > 0) skipEvent--;
                 continue;
+            }else{
+                //Destination update
+                if(i <= 2){
+                    //Less than 2 events left
+                    print("You are almost at the next destination.");
+                }else if(i == (nextDistance / 20)){
+                    //Half way
+                    print("You are half way to the next destination.");
+                }else{
+                    print(random(25) ? "You are travelling..." : random(33) ? "Moving forward..." : random(50) ? "Journey onwards..." : "Let's continue...");
+                }
             }
 
             randomEvent(); //Random an event
@@ -475,22 +576,17 @@ public class Game{
 
             updateSupply(-eventFrequency * dts * supplyConsumingMultiplier); //Calculate supply along the way
             updateDistance(eventFrequency); //Update distance
-
-            if(i <= 2){ //Less than 2 events left
-                print("You are almost at the next destination.");
-            }else if(i == (nextDistance / 20)){ //Half way
-                print("You are half way to the next destination.");
-            }else{
-                print(random(25) ? "You are travelling..." : random(33) ? "Moving forward..." : random(50) ? "Journey onwards..." : "Let's continue...");
-            }
+            updateTime(eventFrequency * dtt);
         }
 
         print("\nThe next destination is just in your sight.");
 
-        if(nextDistance % eventFrequency > 0){
+        if(nextDistance % eventFrequency > 0 || instantTravel){
+            //Leftover distance
             print("But before that, you chuckle some of your last supplies.");
             updateSupply(-((nextDistance * dts * supplyConsumingMultiplier) % eventFrequency)); //Calculate leftover supplies before approaching new town
             updateDistance(nextDistance % eventFrequency); //Update leftover distance
+            updateTime((nextDistance * dtt) % eventFrequency);
         }else{
             print("You should be approaching very shortly.");
         }
@@ -503,7 +599,7 @@ public class Game{
      * @param bail amount of money needed to bail out of the jail. Also used to determine the seriousness of the crime.
      * @param chance chance of success in fighting, if the crime is obvious, chances are 0%, if the crime is unfounded, chances are >50%
      */
-    public static void committedCrime(String crime, int bail, int chance){
+    public static void committedCrime(String crime, float bail, int chance){
         print("You were accused of " + crime + ".");
 
         if(choices("Is the accusation true?", "Confess", "Deny")){
@@ -524,70 +620,8 @@ public class Game{
             //Did not confess
             print("You did not confess to the accusations.");
             print("You challenged the accuser for false accusation.");
-            if(random(Math.max(10 - (chance / bail), 9) * 10)){
-                //Court case
-                print("Let's fight in the court of law.");
-
-                int lawyerChance = 75;
-                switch(choicesBuying("What lawyer would you hire?", 1, new int[]{0, 20, 40}, "Public Defender (0 c)", "Law Associate", "Attorney")){
-                    case 1 -> print("You hired a Public Defender to represent you in the lawsuit.");
-                    case 2 -> {
-                        print("You hired a law associate to represent you in the lawsuit.");
-                        lawyerChance = 100;
-                    }
-                    case 3 -> {
-                        print("You hired an attorney to represent you in the lawsuit.");
-                        lawyerChance = 120;
-                    }
-                }
-
-                print("Your hired lawyer asked you some questions to help them with the case:");
-
-                int confidence = 0;
-                confidence += choices("Would you please explain the situation?", "Explain in detail", "Explain obscurely") ? 20 : -10;
-                confidence += choices("Are there any witnesses?", "Yes", "No") ? 25 : -15;
-                confidence += choices("Are there biases in the case?", "Yes", "No") ? 30 : 0;
-
-                print("Your lawyer inspected your answers closely.");
-
-                if(chance >= 60 && confidence > 0){
-                    //Supportive
-                    print("Thanks to your helpful insight, they gained additional resources to support you.");
-                    print("They are confident that you'd win the case.");
-                    lawyerChance += confidence;
-                }else if(chance >= 30){
-                    //Neutral
-                    print("Unfortunately, Your insight did not provide them any leverage to the case.");
-                    print("But, they will try their best to protect you in the court.");
-                    lawyerChance += rng(0, confidence/2);
-                }else{
-                    //Negative
-                    if(lawyerChance - confidence < lawyerChance - lawyerChance/2){
-                        //Replaces lawyer with a Public Defender
-                        print("They came with the conclusion that they cannot accept the case.");
-                        print("The Public Defender should be in place for your missing lawyer.");
-                        lawyerChance = 75;
-                    }else if(confidence < 0){
-                        //Low winning chance, but more confidence
-                        print("From the surface, they knew that you have a low chance of winning.");
-                        print("But thanks to your helpful insight, they've gained confidence to support you.");
-                        print("They're quite confident that you'll win the case despite all the odds.");
-                        lawyerChance -= confidence;
-                    }else{
-                        //Less winning chance
-                        print("Based on your answers, they concluded that the case isn't on your side.");
-                        print("They are not fully confident that they can protect you.");
-                        lawyerChance -= confidence;
-                    }
-                }
-
-                boolean ruling = random(chance * lawyerChance * luck * courtChanceMultiplier);
-                if(ruling){
-                    print("You have found to be NOT GUILTY!");
-                    print("Case closed.");
-                }else{
-                    print("You have found to be GUILTY!"); //TODO
-                }
+            if(bail >= 15 && random(Math.max(10 - (chance / bail), 9) * 10)){
+                lawsuit(crime, bail, chance);
             }else{
                 //Negotiate in the police station
                 print("The police told you to clear things out before the case escalated.");
@@ -595,18 +629,123 @@ public class Game{
                 print("You talked with the accuser to find the common ground to end the case.");
                 print(random(50) ? "You explained them their story and how it was a misunderstanding." : "They explained the situation in their perspective and what they knew.");
                 if(random(chance)){
-                    int comps = rng(bail - (bail/4), bail/2);
+                    int comps = rng(Math.round(bail - (bail/4)), Math.round(bail/2));
                     print("It was a misunderstanding and the accuser withdraw the case.");
                     print("They agreed to pay the compensation of " + comps + " coins to you.");
                     print("Case closed.");
                     updateMoney(comps);
                 }else{
-                    int comps = rng(bail - (bail/2), bail/4);
-                    print("You agreed to pay " + comps + " coins for the accuser to withdraw the case.");
-                    print("Case closed.");
-                    updateMoney(comps);
+                    int comps = rng(Math.round(bail - (bail/2)), Math.round(bail/4));
+                    print("They requested you to pay the compensation of " + comps + " coins.");
+
+                    if(money >= comps){
+                        if(choicesBuying("What do you do?", new int[]{comps, 0}, "Accept", "Refuse") == 1){
+                            print("You agreed to pay " + comps + " coins for the accuser to withdraw the case.");
+                            print("Case closed.");
+                        }else{
+                            print("You refused to pay the compensation of " + comps + " coins.");
+
+                            if(random(35)){
+                                //Reconsider with reduced price
+                                int newComps = rng(Math.round(comps - (bail/4)), Math.round((bail/8)));
+                                print("The accuser asked you to reconsider, this time with the reduced price of " + newComps + " coins.");
+                                if(choicesBuying("What do you do?", new int[]{newComps, 0}, "Accept", "Refuse") == 1){
+                                    print("You agreed to pay " + newComps + " coins for the accuser to withdraw the case.");
+                                    print("Case closed.");
+                                }else{
+                                    print("You refused to pay the compensation of " + newComps + " coins.");
+                                    lawsuit(crime, bail, chance);
+                                }
+                            }else{
+                                lawsuit(crime, bail, chance);
+                            }
+                        }
+                    }else{
+                        //Not enough money TODO bank system and gets money before you leave a town
+                        print("But apparently, you don't have enough money to pay all of that.");
+                        print("You don't have a choice but to loan money to pay them.");
+                        updateMoneyRaw(-comps); //Spends money and be in debt
+                    }
                 }
             }
+        }
+    }
+
+    /** Court case TODO in the future, merge crime and lawsuit and uniform into a class */
+    public static void lawsuit(String crime, float bail, int chance){
+        print("Let's continue in the court of law.");
+
+        int lawyerChance = 75;
+        float confidence = 0f, confidenceMultiplier = 0.75f;
+
+        switch(choicesBuying("What lawyer would you hire?", 1, new int[]{0, 20, 40}, "Public Defender (0 c)", "Law Associate", "Attorney")){
+            case 1 -> print("You hired a Public Defender to represent you in the lawsuit.");
+            case 2 -> {
+                print("You hired a law associate to represent you in the lawsuit.");
+                lawyerChance = 100;
+                confidenceMultiplier = 1f;
+            }
+            case 3 -> {
+                print("You hired a professional attorney to represent you in the lawsuit.");
+                lawyerChance = 120;
+                confidenceMultiplier = 1.2f;
+            }
+        }
+
+        print("Your hired lawyer asked you some questions to help them with the case:");
+        confidence += choices("Would you please explain the situation?", "Explain in detail", "Explain obscurely") ? 20 : -10;
+        confidence += choices("Are there any witnesses?", "Yes", "No") ? 25 : -15;
+        confidence += choices("Are there biases in the case?", "Yes", "No") ? 30 : 0;
+
+        print("Your lawyer inspected your answers closely.");
+        print("Lawyer chance: " + lawyerChance + "   Confidence: " + confidence); //DEBUG
+
+        if(chance >= 60 && confidence > 0){
+            //Supportive
+            print("Thanks to your helpful insight, they gained additional resources to support you.");
+            print("They are confident that you'd win the case.");
+            lawyerChance += confidence * confidenceMultiplier;
+        }else if(chance >= 30){
+            //Neutral
+            print("Unfortunately, Your insight did not provide them any leverage to the case.");
+            print("But, they will try their best to protect you in the court.");
+            lawyerChance += rng(0, Math.round((confidence * confidenceMultiplier) / 2f));
+        }else{
+            //Negative
+            if(lawyerChance > 75 && (lawyerChance + confidence < lawyerChance - lawyerChance/2f)){
+                //Replaces lawyer with a Public Defender
+                print("They came with the conclusion that they cannot accept the case.");
+                print("The Public Defender should be in place for your missing lawyer.");
+                lawyerChance = 75;
+            }else if(confidence < 0){
+                //Low winning chance, but more confidence
+                print("From the surface, they knew that you have a low chance of winning.");
+                print("But thanks to your helpful insight, they've gained confidence to support you.");
+                print("They're quite confident that you'll win the case despite all the odds.");
+                lawyerChance -= confidence * confidenceMultiplier;
+            }else{
+                //Less winning chance
+                print("Based on your answers, they concluded that the case isn't on your side.");
+                print("They are not fully confident that they can protect you.");
+                lawyerChance -= confidence * confidenceMultiplier;
+            }
+        }
+
+        boolean guilty = !random(chance * (lawyerChance / 100f) * luck * courtChanceMultiplier);
+
+        print("You were tried before a jury.");
+        print("The verdict has been made.");
+
+        if(guilty){
+            print("You have found to be GUILTY!");
+            //TODO
+        }else{
+            print("You have found to be NOT GUILTY!");
+            print("You were acquitted of " + crime + ".");
+            print("The court has ordered the plaintiff to compensate you.");
+            updateMoney(rng(Math.round(bail - (bail /4)), Math.round(bail)));
+            //TODO
+            print("Case closed.");
         }
     }
 
@@ -614,23 +753,23 @@ public class Game{
         String[] names;
         if(totalDistance < townProgression){
             //Medieval-ish names
-            names = new String[]{"Gogrell", "Loghedge", "Sulton", "Flat Hills", "Wandermoore", "Forht Wurst", "Planus", "Maureus", "Shalge", "Spring Falls",
+            names = new String[]{"Mohraht", "Loghedge", "Sulton", "Flat Hills", "Wandermoore", "Forht Wurst", "Planus", "Maureus", "Shalge", "Spring Falls",
                     "Blueridge", "Gammerbon", "Quenton", "Tappine", "Kelfalls", "Lugner", "Aureole", "Hellenis", "Torkus", "Hamsterdams", "Saint Faint", "Hemperton",
-                    "Sevielle", "Nouvelle", "Simperton", "Ramrion", "Samsion", "Taelom", "Chomlite", "Jaylen", "Shyyrea", "Lakeland", "Granet", "Tulland", "Chullia", "Spiel",
-                    "Redrogue", "Reskslope", "Flendus", "Sacharina", "Almari", "Shala'an", "La Marika", "Schellin", "Shariala", "Achareus"};
+                    "Sevielle", "Nouvelle", "Simperton", "Ramrion", "Samsara", "Taelom", "Chomlite", "Jaylen", "Shreia", "Oppeland", "Tualope", "Tulland", "Chuland", "Spiel",
+                    "Redrogue", "Garalopa", "Flacade", "Sacharina", "Almara", "Shala'an", "La Marika", "Medeli", "Shariala", "Achareus"};
         }else if(totalDistance < cityProgression){
             //Contemporary names
-            names = new String[]{"Landington", "Durrien", "Gaiari", "Loneston", "Shoraphora", "Monapolis", "Neapolis", "Caitlin", "Lake Aura", "Mickipolis",
-                    "San Angelo", "Haven", "York", "Thrace", "Alexandra", "Grand Mount", "Helmburg", "Athenaville", "Deep Valley", "Engburg", "Chylia",
+            names = new String[]{"Landington", "Durnishia", "Gaiari", "Loneston", "Shoraphora", "Monapolis", "Neapolis", "Caitlin", "Lake Aura", "Mickipolis", "Tanisha",
+                    "San Angelo", "Havene", "Yorktown", "Triade", "Alexandra", "Grand Mount", "Helmburg", "Athenaville", "Deep Valley", "Engburg", "Chylia",
                     "Ayodhya", "Winter Falls", "Galveston", "Shdever", "Daviston", "Ausgustus", "Tucusz", "Rapid City", "Stark City", "Enoyne", "Envoyage", "O'hara",
-                    "Hampston", "North City", "South City", "East City", "West City", "Sharwa Kano", "Shlomburg", "Santa Valley", "Clark City", "Ocean City", "Lake City",
+                    "Hampston", "North City", "South City", "East City", "West City", "Sharwa Kano", "Shlomburg", "Santa Valley", "Dashar City", "Ocean City", "Lake City",
                     "Los Athos", "Rammerling", "Kingston", "Tomston", "Mineta", "Ayshrin", "Holmeston", "Stanton Town", "Falcon City", "Campus City", "Hermelet",
-                    "Stone Falls", "Herline", "Quartz City", "Los Alligatos", "Chocoland", "Luzeman", "Selena", "Moscalp", "Timperton", "Mexokan", "Spring City",
+                    "Stone Falls", "Herline", "Quartz City", "Mavericks", "Chocoland", "Godeman", "Selena", "Moscalp", "Timperton", "Mexokan", "Spring City",
                     "Summer Town", "Gypsum City", "Strait City", "Boublex", "Flandburg", "Mondburg", "Schellge", "Shraines", "New Capital"};
         }else{
             //Futuristic names
-            names = new String[]{"United City", "Odyssea", "Halcyon", "Gomorrah", "Aughrus", "Federal City", "Teksas", "Altopolis", "Malrusia", "Disappointment",
-                    "Kashyyk", "Coruscant", "Alderaa", "Kamino City", "Felucia", "Naboo", "Sednapolis", "Erisapolis", "Makeopolis", "Deep Blue City", "Skyrux", "Taurax",
+            names = new String[]{"United City", "Odyssea", "Halcyon", "Gomorrah", "Aughrus", "Federal City", "Teksas", "Altopolis", "Malrusia", "Disappointment", "Miserable",
+                    "Kashyyk", "Coruscant", "Alderaa", "Kiminore City", "Felucia", "Naboo", "Sednapolis", "Erisapolis", "Makeopolis", "Deep Blue City", "Skyrux", "Taurax",
                     "New Hamsterdams", "New Hellington", "Provincial Capital", "National Capital", "Holy Capital", "Royal Capital", "Imperial Capital", "Genova", "Polluxis",
                     "Columbus", "Hellwonder", "NE0 District", "Manderson", "Valenia", "Texopolis", "Perker", "Lake Ultron", "Selexia", "Pulsar City", "Novasavia",
                     "Spiral City", "Heliopolis", "Terra District", "Lunar District", "Solar District", "Ezene District", "Cheese District", "Astronova", "Astropolis",
@@ -722,6 +861,8 @@ public class Game{
                 }
             }
         }
+
+        updateTime(eventTime);
     }
 
     //Thieves TODO mafia, they are of a powerful crime syndicate. Different event for TOWN and up
@@ -873,6 +1014,8 @@ public class Game{
                 }
             }
         }
+
+        updateTime(eventTime);
     }
 
     //Abandoned house
@@ -900,7 +1043,7 @@ public class Game{
             }
             case 3 -> {
                 print("You walked around the house.");
-                if(random(75)){
+                if(random(80)){
                     //Normal events
                     switch(rng(1, 1)){
                         case 1 -> {
@@ -980,6 +1123,8 @@ public class Game{
                 }
             }
         }
+
+        updateTime(eventTime);
     }
 
     public static void eventMerchant(){
@@ -1030,6 +1175,8 @@ public class Game{
 
             case 4 -> print("You declined the offer and continued on with your journey.");
         }
+
+        updateTime(eventTime);
     }
 
     /** Random events */
@@ -1047,9 +1194,10 @@ public class Game{
     public static void resetProgression(){
         currentTown = "Home";
         nextTown = "";
-        supply = 20; //Set difficulty
-        money = 100; //Set difficulty
-        skipEvent = totalDistance = nextDistance = 0;
+        supply = 20f; //Set difficulty
+        money = 100f; //Set difficulty
+        gameDay = 1;
+        gameTime = timeElapsed = withheldSupply = skipEvent = totalDistance = nextDistance = 0;
     }
 
     /** Ends the game with whatever reason. */
@@ -1120,17 +1268,19 @@ public class Game{
 
             var in = input.nextInt();
             int ans = Integer.parseInt("" + in) == in ? in : defaultAns;
+            boolean failed = false;
 
             for(int i = 0; i < options.length; i++){
                 if(ans == i + 1){
                     if(prices[i] > 0) spentMoney(prices[i], () -> {});
                     if(money >= prices[i]) return i + 1;
+                    failed = true;
                 }
             }
 
             if(defaultAns != -100){
                 return defaultAns;
-            }else{
+            }else if(!failed){
                 print("Wrong or invalid input, please try again.");
             }
         }
@@ -1175,4 +1325,4 @@ public class Game{
         System.out.print(text);
         line.nextLine();
     }
-} //TODO make another, more sensational ending - a way to gain money - more events
+} //TODO make another, more sensational ending - a way to gain money - more events - rounding hell
