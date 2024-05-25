@@ -843,25 +843,25 @@ public class Game{
         String[] names;
         if(totalDistance < townProgression){
             //Medieval-ish names
-            names = new String[]{"Mohraht", "Loghedge", "Sulton", "Flat Hills", "Wandermoore", "Forht Wurst", "Planus", "Maureus", "Shalge", "Spring Falls",
-                    "Blueridge", "Gammerbon", "Quenton", "Tappine", "Kelfalls", "Lugner", "Aureole", "Hellenis", "Torkus", "Hamsterdams", "Saint Faint", "Hemperton",
-                    "Sevielle", "Nouvelle", "Simperton", "Ramrion", "Samsara", "Taelom", "Chomlite", "Jaylen", "Shreia", "Oppeland", "Tualope", "Tulland", "Chuland", "Spiel",
-                    "Redrogue", "Garalopa", "Flacade", "Sacharina", "Almara", "Shala'an", "La Marika", "Medeli", "Shariala", "Achareus", "Marino Harbor"};
+            names = new String[]{"Mohraht", "Loghedge", "Sulton", "Flat Hills", "Wandermoore", "Forht Wurst", "Pluvia", "Maureus", "Shalge", "Spring Falls",
+                    "Blueridge", "Gammerbon", "Quenton", "Tappine", "Kelfalls", "Halstrom", "Aurorum", "Hereid", "Torkus", "Homines", "Saint Faint", "Hemperton",
+                    "Sevielle", "Nouvelle", "Simperton", "Aether", "Tullishion", "Taelom", "Sursum", "Deorsum", "Shreia", "Oppeland", "Tualope", "Tulland", "Chuland", "Spiel",
+                    "Redrogue", "Garalopa", "Flacade", "Sacharina", "Almara", "Shala'an", "Urbs", "Medeli", "Shariala", "Achareus", "Marino Harbor"};
         }else if(totalDistance < cityProgression){
             //Contemporary names
             names = new String[]{"Landington", "Durnishia", "Gaiari", "Loneston", "Shoraphora", "Monapolis", "Neapolis", "Caitlin", "Lake Aura", "Mickipolis", "Tanisha",
-                    "San Angelo", "Havene", "Yorktown", "Triade", "Alexandra", "Grand Mount", "Helmburg", "Athenaville", "Deep Valley", "Engburg", "Chylia",
-                    "Marilyn", "Winter Falls", "Galveston", "Shdever", "Daviston", "Ausgustus", "Tucusz", "Rapid City", "Stark City", "Enoyne", "Envoyage", "O'hara",
-                    "Hampston", "North City", "South City", "East City", "West City", "Sharwa Kano", "Shlomburg", "Santa Valley", "Dashar City", "Ocean City", "Lake City",
-                    "Los Athos", "Rammerling", "Kingston", "Tomston", "Mineta", "Ayshrin", "Holmeston", "Stanton Town", "Falcon City", "Campus City", "Hermelet",
-                    "Stone Falls", "Herline", "Quartz City", "Mavericks", "Chocoland", "Godeman", "Selena", "Goale", "Timperton", "Kanon", "Spring City",
-                    "Summer Town", "Gypsum City", "Strait City", "Boublex", "Flandburg", "Mondburg", "Schellge", "Shraines", "New Capital"};
+                    "San Angelo", "Dunestorm", "Yorktown", "Trianglish", "Alexandra", "Ghans", "Helmburg", "Schieville", "Deep Valley", "Tenburg", "Gollant",
+                    "Marilyn", "Winter Falls", "Galveston", "Shdever", "Daviston", "Ausgustus", "Dolorous", "Rapid City", "Stark City", "Enveil", "Envoyage", "Hope",
+                    "Hampston", "North City", "South City", "East City", "West City", "Kanorawa", "Shlomburg", "Santa Valley", "Daho City", "Ocean City", "Lake City",
+                    "Los Athos", "Rammerling", "Kingston", "Tandor", "Riverend", "Ayshrin", "Holmeston", "Stanton Town", "Falcon City", "Campus City", "Hermelet",
+                    "Stone Falls", "Herline", "Corundum City", "Malorr", "Charland", "Godeman", "Selena", "Goale", "Timperton", "Ralbak", "Spring City",
+                    "Summer Town", "Gypsum City", "Strait City", "Boublex", "Adomerium", "Mondburg", "Schellge", "Shraines", "New Capital"};
         }else{
             //Futuristic names
-            names = new String[]{"United City", "Orbis", "Terrarum", "Gomorrah", "Aquilae", "Federal City", "Promontorium", "Altopolis", "Malruss", "Disappointment", "Miserable",
-                    "Vincere", "Coruscant", "Occidus", "Orientus", "Artabuscus", "Terabeta", "Sednapolis", "Erisapolis", "Makeopolis", "Deep Blue City", "Skyrux", "Taurax",
-                    "New Hamsterdams", "New Hellington", "Provincial Capital", "National Capital", "Holy Capital", "Royal Capital", "Imperial Capital", "Genova", "Polluxis",
-                    "Columbus", "Mellande", "NE0 District", "Sonzic", "Valenia", "Oppopolis", "Parker", "Lake Ultron", "Selexia", "Pulsar City", "Novasavia",
+            names = new String[]{"United City", "Orbis", "Terrarum", "Gomorrah", "Aquilae", "Federal City", "Promontorium", "Altopolis", "Mallorus", "Disappointment", "Miserable",
+                    "Vincere", "Calamity", "Caelum", "Orientus", "Artabuscus", "Terabeta", "Polishia", "Erisapolis", "Makeopolis", "Deep Blue City", "Skyrux", "Taurax",
+                    "Glorium", "Nebula", "Provincial Capital", "National Capital", "Holy Capital", "Royal Capital", "Imperial Capital", "Genova", "Polluxis", "Depression",
+                    "Columbus", "Mellande", "NE0 District", "Sonzic", "Valenia", "Oppopolis", "Parker", "Lake Ultron", "Selexia", "Pulsar City", "Novasavia", "Pathetic",
                     "Spiral City", "Heliopolis", "Terra District", "Lunar District", "Solar District", "Ezene District", "Cheese District", "Astronova", "Astropolis",
                     "Axiom Alpha", "Axiom Beta", "Axiom Gamma", "Axiom Delta", "Axiom Sigma"};
         }
@@ -1428,4 +1428,4 @@ public class Game{
         System.out.print(text);
         line.nextLine();
     }
-} //TODO make another, more sensational ending - more events - rounding hell
+} //TODO make another, more sensational ending - more events - rounding hell - use arraylist
